@@ -27,7 +27,7 @@ haspmota.start(false, tasmota.wd + "pages.jsonl")
 
 import global
 
-global.p1b21._lv_obj.clear_flag(lv.OBJ_FLAG_SCROLLABLE)
+global.p1b20._lv_obj.clear_flag(lv.OBJ_FLAG_SCROLLABLE)
 
 # load custom fonts
 #var fstitle = lv.load_font("A:title_symbols.bin")

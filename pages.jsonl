@@ -14,7 +14,7 @@
 {"id":10,"obj":"tabview","x":0,"y":23,"h%":80,"w%":100,"tab_bar_size":45,"btn_pos":1}
 
   {"id":20,"obj":"tab","parentid":10,"text":"\ue9e4","tab_text_font":"A:title_symbols.font","pad_all":2}
-    {"id":21,"obj":"lv_thermostat_card","parentid":20,"x":0,"y":0,"h%":100,"w%":100,"arc_width":30,"min":17,"max":27,"setpoint":22.0,"measurement_rule":"BME280#Temperature"}
+    {"id":21,"obj":"lv_thermostat_card","parentid":20,"x":0,"y":10,"h%":100,"w%":100,"arc_width":30,"min":17,"max":27,"setpoint":22.0,"measurement_rule":"BME280#Temperature"}
 
   {"id":30,"obj":"tab","parentid":10,"text":"Tab 2","tab_bg_color":"#000000","tab_bg_color01":"#FF4400","tab_text_color":"#FFFF44","tab_text_color01":"#FFFFFF","tab_border_color":"#FFFF44","tab_border_side":1,"tab_border_width":2,"tab_border_width01":5}
 
