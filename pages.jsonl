@@ -19,16 +19,16 @@
   {"id":30,"obj":"tab","parentid":10,"text":"Tab 2","tab_bg_color":"#000000","tab_bg_color01":"#FF4400","tab_text_color":"#FFFF44","tab_text_color01":"#FFFFFF","tab_border_color":"#FFFF44","tab_border_side":1,"tab_border_width":2,"tab_border_width01":5}
 
     {"id":31,"obj":"label","parentid":30,"x":0,"y":33,"w%":50,"text":"Stereoanlage","text_font":"montserrat-20"}
-    {"id":32,"obj":"lv_switch_mqtt","parentid":30,"x%":65,"y":30,"w":90,"h":30,"remote":"tasmota3","text_checked":"Ein","text_unchecked":"Aus"}
+    {"id":32,"obj":"lv_power_switch_mqtt","parentid":30,"x%":65,"y":30,"w":90,"h":30,"remote":"tasmota3","text_checked":"Ein","text_unchecked":"Aus","confirm_power":25,"confirm_text_off":"Wirklich abschalten?"}
 
     {"id":33,"obj":"label","parentid":30,"x":0,"y":93,"w%":50,"text":"3D-Drucker","text_font":"montserrat-20"}
-    {"id":34,"obj":"lv_switch_mqtt","parentid":30,"x%":65,"y":90,"w":90,"h":30,"remote":"tasmota9","text_checked":"Ein","text_unchecked":"Aus"}
+    {"id":34,"obj":"lv_power_switch_mqtt","parentid":30,"x%":65,"y":90,"w":90,"h":30,"remote":"tasmota9","text_checked":"Ein","text_unchecked":"Aus","confirm_power":3,"confirm_text_off":"Wirklich abschalten?"}
 
     {"id":35,"obj":"label","parentid":30,"x":0,"y":153,"w%":50,"text":"Ventilator","text_font":"montserrat-20"}
-    {"id":36,"obj":"lv_switch_mqtt","parentid":30,"x%":65,"y":150,"w":90,"h":30,"remote":"tasmota2","text_checked":"Ein","text_unchecked":"Aus"}
+    {"id":36,"obj":"lv_power_switch_mqtt","parentid":30,"x%":65,"y":150,"w":90,"h":30,"remote":"tasmota2","text_checked":"Ein","text_unchecked":"Aus"}
 
     {"id":37,"obj":"label","parentid":30,"x":0,"y":213,"w%":50,"text":"Lichtanlage","text_font":"montserrat-20"}
-    {"id":38,"obj":"lv_switch_mqtt","parentid":30,"x%":65,"y":210,"w":90,"h":30,"remote":"tasmota1","text_checked":"Ein","text_unchecked":"Aus"}
+    {"id":38,"obj":"lv_power_switch_mqtt","parentid":30,"x%":65,"y":210,"w":90,"h":30,"remote":"tasmota1","text_checked":"Ein","text_unchecked":"Aus"}
 
 {"page":2,"comment":"Page 2"}
 {"id":0,"bg_color":"#0000A0","bg_grad_color":"#000000","bg_grad_dir":1,"text_color":"#FFFFFF"}

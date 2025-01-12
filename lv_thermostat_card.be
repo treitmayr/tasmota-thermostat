@@ -1,4 +1,5 @@
-import haspmota
+#import haspmota
+import string
 import math
 
 # lv_thermostat_card class
@@ -10,6 +11,9 @@ class lv_thermostat_card : lv.obj
     var diff_arc
     var setpoint_knob
     var measurement_knob
+    var setpoint_label
+    var measurement_label
+    var setpoint_unit
 
     var min
     var max
@@ -73,6 +77,24 @@ class lv_thermostat_card : lv.obj
             k.clear_flag(lv.OBJ_FLAG_CLICKABLE)
         end
 
+        var label = lv.label(self.arc)
+        label.set_style_pad_all(0, 0)
+        label.set_style_margin_all(0, 0)
+        #label.set_align(lv.ALIGN_CENTER)
+        label.align(lv.ALIGN_CENTER, 0, -30)
+        var font = lv.load_font("A:big_num.font")
+        label.set_style_text_font(font, lv.PART_MAIN)   # or f20?
+        label.set_text("--.-")
+        self.setpoint_label = label
+
+        label = lv.label(self.arc)   # setpoint_label)
+        label.set_style_pad_all(0, 0)
+        label.set_style_margin_all(0, 0)
+        label.align_to(self.setpoint_label, lv.ALIGN_OUT_TOP_RIGHT, 0, 0)
+        label.set_style_text_font(lv.montserrat_font(14), lv.PART_MAIN)   # or f14?
+        label.set_text("°C")
+        self.setpoint_unit = label
+
         self.add_event_cb( / -> self._size_changed(), lv.EVENT_SIZE_CHANGED, 0)
         self.add_event_cb( / -> self._size_changed(), lv.EVENT_STYLE_CHANGED, 0)
 
@@ -134,10 +156,11 @@ class lv_thermostat_card : lv.obj
     end
 
     def set_setpoint(t)
-        self.setpoint = t
+        self.setpoint = real(t)
         self.arc.set_value(int(t * self.setpoint_resolution))
         self.arc.align_obj_to_angle(self.setpoint_knob, 0)
         self.update_diff_arc()
+        self._update_setpoint_label()
     end
 
     def set_measurement(t)
@@ -186,6 +209,7 @@ class lv_thermostat_card : lv.obj
         self.setpoint = real(self.arc.get_value()) / self.setpoint_resolution
         self.arc.align_obj_to_angle(self.setpoint_knob, 0)
         self.update_diff_arc()
+        self._update_setpoint_label()
     end
 
     def _size_changed(obj, evt)
@@ -206,6 +230,10 @@ class lv_thermostat_card : lv.obj
         self.setpoint_knob.set_style_bg_color(bg, lv.PART_MAIN)
     end
 
+    def _update_setpoint_label()
+        self.setpoint_label.set_text(string.replace(f"{self.setpoint:%.1f}", ".", ","))
+        self.setpoint_unit.align_to(self.setpoint_label, lv.ALIGN_OUT_RIGHT_TOP, 0, 0)
+    end
 
   # def every_second()
   #   var dirty = false

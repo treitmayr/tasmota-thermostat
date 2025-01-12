@@ -19,7 +19,7 @@ tasmota.cmd("TempRes 2")
 import lv_tasmota_info
 # import lv_wifi_graph
 import lv_thermostat_card
-import lv_switch_mqtt
+import lv_power_switch_mqtt
 
 import haspmota
 

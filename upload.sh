@@ -87,7 +87,7 @@ do
                     then
                         echo "successful"
                         # delete compiled file
-                        delete_file "/${fname}c"
+                        #delete_file "/${fname}c"
                     else
                         echo "with errors:"
                         echo "'$res'" | sed 's/^/\t/'
