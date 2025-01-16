@@ -1,7 +1,7 @@
 import lv
 import mqtt
 
-class lv_power_switch_mqtt: lv.switch
+class power_switch_tasmota: lv.switch
 
     var _remote_name
     var _prepare_enable
@@ -114,15 +114,18 @@ class lv_power_switch_mqtt: lv.switch
         var mbox = lv.msgbox(0)
         self._msgbox = mbox
         mbox.set_style_bg_opa(100, 0)
-        #mbox.add_title("Hello")
-        mbox.add_text(text)
-        #lv_msgbox_add_close_button(mbox1)
+        mbox.set_style_pad_all(10, lv.PART_MAIN | lv.STATE_DEFAULT)
+        var txt = mbox.add_text(text)
+        txt.set_style_pad_bottom(10, lv.PART_MAIN | lv.STATE_DEFAULT)
 
-        # TODO....
-        var btn = mbox.add_footer_button("OK✓")    # "✓")
-        btn.add_event_cb( / obj, event -> self._confirm_cb_ok(), lv.EVENT_CLICKED, 0)
-        btn = mbox.add_footer_button("Cancel✕")    # "✕")
-        btn.add_event_cb( / obj, event -> self._confirm_cb_cancel(), lv.EVENT_CLICKED, 0)
+        var btn = mbox.add_footer_button(lv.SYMBOL_OK)
+        var height = lv.font_get_line_height(btn.get_style_text_font(lv.PART_MAIN))
+        btn.set_width(height * 3)         # set width based on height
+        btn.add_event_cb( / -> self._confirm_cb_ok(), lv.EVENT_CLICKED, 0)
+
+        btn = mbox.add_footer_button(lv.SYMBOL_CLOSE)
+        btn.set_width(height * 3)
+        btn.add_event_cb( / -> self._confirm_cb_cancel(), lv.EVENT_CLICKED, 0)
     end
 
     def _confirm_cb_ok()
@@ -219,4 +222,4 @@ class lv_power_switch_mqtt: lv.switch
 
 end
 
-return lv_power_switch_mqtt
+return power_switch_tasmota
