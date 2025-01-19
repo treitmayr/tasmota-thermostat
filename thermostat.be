@@ -28,7 +28,7 @@ class thermostat
 
     def set_hysteresis(hyst)
         if hyst < 0.1
-            tasmota.log(f"Hysteresis must be at least 0.1 °C (is: {hyst})", 1)
+            tasmota.log(f"Hysteresis must be at least 0.1 °C (given: {hyst})", 1)
         else
             tasmota.cmd(f"TempHystSet {hyst}")
         end
@@ -36,9 +36,9 @@ class thermostat
 
     def set_ramp_up_delta(delta)
         if delta < 0.1
-            tasmota.log(f"Ramp-Up delta must be at least 0.1 °C (is: {delta})", 1)
+            tasmota.log(f"Ramp-Up delta must be at least 0.1 °C (given: {delta})", 1)
         else
-            tasmota.cmd(f"TEMPRUPDELTINSET {delta}")
+            tasmota.cmd(f"TempRupDeltInSet {delta}")
         end
     end
 

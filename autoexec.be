@@ -20,8 +20,36 @@ import lv_tasmota_info
 # import lv_wifi_graph
 import lv_thermostat_card
 import power_switch_tasmota
+import thermostat
 
 import haspmota
+
+
+class full_thermostat: lv_thermostat_card
+
+	var _t
+
+	def init(parent)
+		super(self).init(parent)
+		self._t = thermostat()
+	end
+
+	def initialized_cb()
+		print("enabling thermostat")
+		self._t.set_measured_temp(self.get_measurement())
+		self._t.set_target_temp(self.get_setpoint())
+		self._t.enable()
+	end
+
+	def setpoint_cb(t)
+		self._t.set_target_temp(t)
+	end
+
+	def measurement_cb(t)
+		self._t.set_measured_temp(t)
+	end
+end
+
 
 haspmota.start(false, tasmota.wd + "pages.jsonl")
 
