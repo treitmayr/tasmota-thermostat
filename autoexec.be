@@ -6,14 +6,13 @@
 	return
 end -#
 
-# disable spash screen in order to speed up boot sequence
-tasmota.cmd("SetOption135 1")
-
-# use PWM instead of simple on/off for buzzer
-tasmota.cmd("BuzzerPwm 1")
-
-# set temperature resolution to two decimals (not just one)
-tasmota.cmd("TempRes 2")
+# needed:
+# - disable spash screen in order to speed up boot sequence
+#   SetOption135 1
+# - use PWM instead of simple on/off for buzzer
+#   BuzzerPwm 1
+# - set temperature resolution to two decimals (not just one)
+#   TempRes 2
 
 # import lv_tasmota_log
 import lv_tasmota_info
@@ -21,6 +20,7 @@ import lv_tasmota_info
 import lv_thermostat_card
 import power_switch_tasmota
 import thermostat
+import screensaver
 
 import haspmota
 
@@ -52,6 +52,9 @@ end
 
 
 haspmota.start(false, tasmota.wd + "pages.jsonl")
+
+var scrsvr = screensaver(30)
+global.setmember("scrsvr", scrsvr)     # prevent garbage collection of screensaver
 
 import global
 

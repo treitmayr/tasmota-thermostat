@@ -127,6 +127,11 @@ class lv_thermostat_card : lv.obj
     def initialized_cb()
     end
 
+    def post_config()
+        print(f"in object {self}!! bingo")
+    end
+
+
     def _post_config()
         self._set_setpoint()
         if !self._init_cb_called && self._measurement != nil

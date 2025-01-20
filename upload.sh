@@ -6,7 +6,7 @@ set -e
 # shellcheck disable=SC1102,SC2215
 MAX_FNAME_LEN=45
 
-base_url='http://192.168.3.43'
+base_url='http://tasmota-thermostat'
 curl_opts=(--silent)
 #curl_opts=(-vv -i)
 
@@ -19,6 +19,13 @@ files=(
 #files=(lv_thermostat_card.be)
 
 tooldir="$(dirname "$0")"
+
+restart()
+{
+    curl "${curl_opts[@]}" \
+        --data-urlencode "cmnd=restart 1" \
+        "${base_url}/cm"
+}
 
 download_file()
 {
@@ -59,6 +66,9 @@ delete_file()
         "${base_url}/ufsd" >/dev/null
 }
 
+any_changes=''
+any_errors=''
+
 for f in "${files[@]}"
 do
     fname="$(basename "$f")"
@@ -82,6 +92,7 @@ do
                 then
                     echo "successful"
                     echo -n "    compiling "
+                    any_changes='x'
                     res="$(run_berry_command "tasmota.compile(\"$fname\")")"
                     if [ "$(echo "$res" | xargs)" = 'true' ]
                     then
@@ -91,9 +102,11 @@ do
                     else
                         echo "with errors:"
                         echo "'$res'" | sed 's/^/\t/'
+                        any_errors='x'
                     fi
                 else
                     echo "failed"
+                    any_errors='x'
                 fi
             fi
         else
@@ -106,8 +119,10 @@ do
                 if upload_file "$fname" "$(stat -c '%s' "$f")" < "$f"
                 then
                     echo "successful"
+                    any_changes='x'
                 else
                     echo "failed"
+                    any_errors='x'
                 fi
             fi
         fi
@@ -115,3 +130,8 @@ do
         echo "Local file '$f' does not exist"
     fi
 done
+
+if [ "${any_changes}" ] && [ -z "${any_errors}" ]
+then
+    restart
+fi
