@@ -28,25 +28,34 @@ import haspmota
 class full_thermostat: lv_thermostat_card
 
 	var _t
+	var _got
 
 	def init(parent)
 		super(self).init(parent)
 		self._t = thermostat()
-	end
-
-	def initialized_cb()
-		print("enabling thermostat")
-		self._t.set_measured_temp(self.get_measurement())
-		self._t.set_target_temp(self.get_setpoint())
-		self._t.enable()
+		self._got = ''
 	end
 
 	def setpoint_cb(t)
 		self._t.set_target_temp(t)
+		if self._got == 'm'
+			print("enabling thermostat")
+			self._t.enable()
+			self._got = '*'
+		elif self._got != '*'
+			self._got = 's'
+		end
 	end
 
-	def measurement_cb(t)
+	def measured_temp_cb(t)
 		self._t.set_measured_temp(t)
+		if self._got == 's'
+			print("enabling thermostat")
+			self._t.enable()
+			self._got = '*'
+		elif self._got != '*'
+			self._got = 'm'
+		end
 	end
 end
 

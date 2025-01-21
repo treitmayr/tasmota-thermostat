@@ -1,4 +1,3 @@
-#import haspmota
 import persist
 import string
 import math
@@ -10,25 +9,23 @@ class lv_thermostat_card : lv.obj
     static var _arc_angle = 270
     static var _timer_id = "ltc_tmr"
     static var _persist_delay = 5 * 60 * 1000    # 5 minutes
-    #static var _persist_delay = 5 * 1000    # 5 seconds
     var arc
     var diff_arc
-    var setpoint_knob
-    var measurement_knob
-    var setpoint_label
-    var measurement_label
-    var setpoint_unit
+    var _setpoint_knob
+    var _temp_knob
+    var _setpoint_label
+    var _temp_label
+    var _setpoint_unit
 
     var _min
     var _max
     var _setpoint
-    var _measurement
+    var _measured_temp
     var _humidity
     var _val_rule
     var _hum_rule
     var _hot_color
     var _cold_color
-    var _init_cb_called
 
     def init(parent)
         super(self).init(parent)
@@ -37,8 +34,6 @@ class lv_thermostat_card : lv.obj
         self._max = 0
         self._hot_color = lv.color(lv.COLOR_ORANGE)
         self._cold_color = lv.color(lv.COLOR_BLUE)
-        self._setpoint = 21.0       # default until updated from persistent memory
-        self._init_cb_called = false
 
         # create main arc
         var arc = lv.arc(self)
@@ -73,12 +68,12 @@ class lv_thermostat_card : lv.obj
         knob.set_style_bg_opa(lv.OPA_COVER, lv.PART_MAIN)
         var bg = self.get_style_bg_color_filtered(lv.PART_MAIN)    # filtered??
         knob.set_style_bg_color(bg, lv.PART_MAIN)
-        self.setpoint_knob = knob
+        self._setpoint_knob = knob
 
         knob = lv.obj(self.diff_arc)
-        self.measurement_knob = knob
+        self._temp_knob = knob
 
-        for k: [self.setpoint_knob, self.measurement_knob]
+        for k: [self._setpoint_knob, self._temp_knob]
             k.set_style_pad_all(0, 0)
             k.set_style_margin_all(0, 0)
             k.add_flag(lv.OBJ_FLAG_EVENT_BUBBLE)
@@ -92,17 +87,17 @@ class lv_thermostat_card : lv.obj
         var font = lv.load_font("A:big_num.font")
         var height = lv.font_get_line_height(font)
         label.align(lv.ALIGN_CENTER, 0, int(-height/2.2))
-        label.set_style_text_font(font, lv.PART_MAIN)   # or f20?
+        label.set_style_text_font(font, lv.PART_MAIN)
         label.set_text("")
-        self.setpoint_label = label
+        self._setpoint_label = label
 
-        label = lv.label(self.arc)   # setpoint_label)
+        label = lv.label(self.arc)
         label.set_style_pad_all(0, 0)
         label.set_style_margin_all(0, 0)
-        label.align_to(self.setpoint_label, lv.ALIGN_OUT_RIGHT_TOP, 0, 0)
-        label.set_style_text_font(lv.montserrat_font(14), lv.PART_MAIN)   # or f14?
+        label.align_to(self._setpoint_label, lv.ALIGN_OUT_RIGHT_TOP, 0, 0)
+        label.set_style_text_font(lv.montserrat_font(14), lv.PART_MAIN)
         label.set_text("°C")
-        self.setpoint_unit = label
+        self._setpoint_unit = label
 
         label = lv.label(self.arc)
         label.set_style_pad_all(0, 0)
@@ -113,7 +108,7 @@ class lv_thermostat_card : lv.obj
         label.set_style_text_font(font, lv.PART_MAIN)
         label.align(lv.ALIGN_CENTER, 0, int(height * 1.5))
         label.set_text("")
-        self.measurement_label = label
+        self._temp_label = label
 
         self.add_event_cb( / -> self._size_changed(), lv.EVENT_SIZE_CHANGED, 0)
         self.add_event_cb( / -> self._size_changed(), lv.EVENT_STYLE_CHANGED, 0)
@@ -121,33 +116,22 @@ class lv_thermostat_card : lv.obj
         self._read_persistent_storage()
 
         # delayed initialization
-        tasmota.set_timer(1000, / -> self._post_config())
-    end
-
-    def initialized_cb()
+        tasmota.set_timer(5000, / -> self.post_config(), "thermini")
     end
 
     def post_config()
-        print(f"in object {self}!! bingo")
-    end
-
-
-    def _post_config()
+        tasmota.remove_timer("thermini")
         self._set_setpoint()
-        if !self._init_cb_called && self._measurement != nil
-            self._init_cb_called = true
-            self.initialized_cb()
-        end
     end
 
     def set_min(t)
         self._min = t
+        if self._setpoint == nil
+            self._setpoint = self._min
+        end
         var keep = self.arc.get_max_value()
         self.arc.set_range(int(t * self._setpoint_resolution), keep)
-        if self._setpoint != nil
-            self.arc.set_value(int(self._setpoint * self._setpoint_resolution))
-        end
-        self._setpoint = real(self.arc.get_value()) / self._setpoint_resolution
+        self.arc.set_value(int(self._setpoint * self._setpoint_resolution))
         self._update_diff_arc()
     end
 
@@ -155,10 +139,6 @@ class lv_thermostat_card : lv.obj
         self._max = t
         var keep = self.arc.get_min_value()
         self.arc.set_range(keep, int(t * self._setpoint_resolution))
-        if self._setpoint != nil
-            self.arc.set_value(int(self._setpoint * self._setpoint_resolution))
-        end
-        self._setpoint = real(self.arc.get_value()) / self._setpoint_resolution
         self._update_diff_arc()
     end
 
@@ -178,14 +158,14 @@ class lv_thermostat_card : lv.obj
         self.diff_arc.set_style_arc_width(t, lv.PART_INDICATOR | lv.STATE_DEFAULT)
 
         var knob_size = t
-        self.setpoint_knob.set_size(knob_size, knob_size)
-        self.setpoint_knob.set_style_radius(knob_size / 2, lv.PART_MAIN)
-        self.setpoint_knob.set_style_border_width(knob_size / 6, lv.PART_MAIN)
+        self._setpoint_knob.set_size(knob_size, knob_size)
+        self._setpoint_knob.set_style_radius(knob_size / 2, lv.PART_MAIN)
+        self._setpoint_knob.set_style_border_width(knob_size / 6, lv.PART_MAIN)
 
         knob_size = t * 3 / 10       # 30 %
-        self.measurement_knob.set_size(knob_size, knob_size)
-        self.measurement_knob.set_style_radius(knob_size / 2, lv.PART_MAIN)
-        self.measurement_knob.set_style_border_width(knob_size / 2, lv.PART_MAIN)
+        self._temp_knob.set_size(knob_size, knob_size)
+        self._temp_knob.set_style_radius(knob_size / 2, lv.PART_MAIN)
+        self._temp_knob.set_style_border_width(knob_size / 2, lv.PART_MAIN)
     end
 
     def set_setpoint(t)
@@ -196,11 +176,11 @@ class lv_thermostat_card : lv.obj
 
     def _set_setpoint()
         self.arc.set_value(int(self._setpoint * self._setpoint_resolution))
-        self.arc.align_obj_to_angle(self.setpoint_knob, 0)
+        self.arc.align_obj_to_angle(self._setpoint_knob, 0)
         self._update_diff_arc()
-        self._update_setpoint_label()
-        self._update_measurement_label()
-        self._update_setpoint_label()
+        self._update__setpoint_label()
+        self._update__temp_label()
+        self._update__setpoint_label()
         self.setpoint_cb(self._setpoint)
     end
 
@@ -211,45 +191,39 @@ class lv_thermostat_card : lv.obj
     def setpoint_cb(t)
     end
 
-    def set_measurement(t)
-        if !self._init_cb_called && self._measurement == nil
-            self._measurement = real(t)
-            self._init_cb_called = true
-            self.initialized_cb()
-        end
-
-        self._measurement = real(t)
+    def set_measured(t)
+        self._measured_temp = real(t)
         self._update_diff_arc()
-        self._update_measurement_label()
-        self.measurement_cb(self._measurement)
+        self._update__temp_label()
+        self.measured_temp_cb(self._measured_temp)
     end
 
-    def get_measurement(t)
-        return self._measurement
+    def get_measured_temp(t)
+        return self._measured_temp
     end
 
-    def measurement_cb(t)
+    def measured_temp_cb(t)
     end
 
     def set_humidity(t)
         self._humidity = int(t)
         self._update_diff_arc()
-        self._update_measurement_label()
+        self._update__temp_label()
     end
 
     def get_humidity(t)
         return self._humidity
     end
 
-    def set_measurement_rule(t)
+    def set_measured_rule(t)
         # remove previous rule if any
-        self.remove_measurement_rule()
+        self.remove_measured_rule()
 
         self._val_rule = str(t)
-        tasmota.add_rule(self._val_rule, / val -> self.set_measurement(val), self)
+        tasmota.add_rule(self._val_rule, / val -> self.set_measured(val), self)
     end
 
-    def remove_measurement_rule()
+    def remove_measured_rule()
         if self._val_rule != nil
             tasmota.remove_rule(self._val_rule, self)
             self._val_rule = nil
@@ -304,12 +278,12 @@ class lv_thermostat_card : lv.obj
     end
 
     def _update_diff_arc()
-        if self._max <= self._min || self._setpoint == nil || self._measurement == nil
+        if self._max <= self._min || self._setpoint == nil || self._measured_temp == nil
             # not fully initialized yet
             return
         end
         var diff = real(self._max - self._min)
-        var mes_angle = self._arc_angle * (self._measurement - self._min) / diff
+        var mes_angle = self._arc_angle * (self._measured_temp - self._min) / diff
         var set_angle = self._arc_angle * (self._setpoint - self._min) / diff
         # clamp at top/bottom
         mes_angle = tasmota.int(mes_angle, 0, self._arc_angle)
@@ -325,8 +299,8 @@ class lv_thermostat_card : lv.obj
                 var light = lv.color_lighten(col, 160)
                 self.diff_arc.set_style_arc_color(col, lv.PART_INDICATOR)
                 self.arc.set_style_arc_color(light, lv.PART_INDICATOR)
-                self.setpoint_knob.set_local_style_prop(lv.STYLE_BORDER_COLOR, col32, lv.PART_MAIN)
-                self.measurement_knob.set_local_style_prop(lv.STYLE_BORDER_COLOR, lv.color_to_u32(light), lv.PART_MAIN)
+                self._setpoint_knob.set_local_style_prop(lv.STYLE_BORDER_COLOR, col32, lv.PART_MAIN)
+                self._temp_knob.set_local_style_prop(lv.STYLE_BORDER_COLOR, lv.color_to_u32(light), lv.PART_MAIN)
             end
         end
 
@@ -335,15 +309,15 @@ class lv_thermostat_card : lv.obj
         else
             _update_it(mes_angle, set_angle, lv.ARC_MODE_REVERSE, self._hot_color)
         end
-        self.diff_arc.align_obj_to_angle(self.measurement_knob, 0)
+        self.diff_arc.align_obj_to_angle(self._temp_knob, 0)
     end
 
     def _arc_changed(obj, evt)
         self._setpoint = real(self.arc.get_value()) / self._setpoint_resolution
-        self.arc.align_obj_to_angle(self.setpoint_knob, 0)
+        self.arc.align_obj_to_angle(self._setpoint_knob, 0)
         self._update_diff_arc()
-        self._update_setpoint_label()
-        self._update_measurement_label()
+        self._update__setpoint_label()
+        self._update__temp_label()
         self._write_persistent_storage()
         self.setpoint_cb(self._setpoint)
     end
@@ -363,22 +337,22 @@ class lv_thermostat_card : lv.obj
 
         # update inner color according to main background color
         var bg = self.get_style_bg_color_filtered(lv.PART_MAIN)    # filtered??
-        self.setpoint_knob.set_style_bg_color(bg, lv.PART_MAIN)
-        self.arc.align_obj_to_angle(self.setpoint_knob, 0)
+        self._setpoint_knob.set_style_bg_color(bg, lv.PART_MAIN)
+        self.arc.align_obj_to_angle(self._setpoint_knob, 0)
     end
 
-    def _update_setpoint_label()
-        self.setpoint_label.set_text(string.replace(f"{self._setpoint:%.1f}", ".", ","))
-        self.setpoint_unit.align_to(self.setpoint_label, lv.ALIGN_OUT_RIGHT_TOP, 0, 0)
+    def _update__setpoint_label()
+        self._setpoint_label.set_text(string.replace(f"{self._setpoint:%.1f}", ".", ","))
+        self._setpoint_unit.align_to(self._setpoint_label, lv.ALIGN_OUT_RIGHT_TOP, 0, 0)
     end
 
-    def _update_measurement_label()
+    def _update__temp_label()
         var s
-        s = f"\uf076 {self._measurement:%.1f}°C"
+        s = f"\uf076 {self._measured_temp:%.1f}°C"
         if self._humidity != nil
             s += f"   \ue798 {self._humidity}%"
         end
-        self.measurement_label.set_text(string.replace(s, ".", ","))
+        self._temp_label.set_text(string.replace(s, ".", ","))
     end
 
     def _write_persistent_storage()
@@ -393,28 +367,11 @@ class lv_thermostat_card : lv.obj
             try
                 self._setpoint = real(persist.setpoint)
             except ..
-                tasmota.log(f"Invalid setpoint '{persist.setpoint}' in persistent memory, clearing")
-                persist.setpoint = self._setpoint
+                tasmota.log(f"Invalid setpoint '{persist.setpoint}' in persistent memory")
             end
         end
     end
 
-  # def every_second()
-  #   var dirty = false
-  # 	for n:0..20
-  # 	  var line = self.log_reader.get_log(self.log_level)
-  # 	  if line == nil break end  # no more logs
-  # 	  self.lines.remove(0)            # remove first line
-  # 	  self.lines.push(line)
-  # 	  dirty = true
-  # 	end
-  # 	if dirty self.update() end
-  # end
-
-  # def update()
-  #   var msg = self.lines.concat("\n")
-  #   self.label.set_text(msg)
-  # end
 end
 
 return lv_thermostat_card

@@ -10,7 +10,7 @@
 {"id":10,"obj":"tabview","x":0,"y":23,"h%":80,"w%":100,"tab_bar_size":45,"btn_pos":1}
 
   {"id":20,"obj":"tab","parentid":10,"text":"\ue9e4","tab_text_font":"A:title_symbols.font","pad_all":2}
-    {"id":21,"obj":"full_thermostat","parentid":20,"x":0,"y":10,"h%":100,"w%":100,"border_side":0,"arc_width":30,"min":17,"max":27,"measurement_rule":"BME280#Temperature","humidity_rule":"BME280#Humidity"}
+    {"id":21,"obj":"full_thermostat","parentid":20,"x":0,"y":10,"h%":100,"w%":100,"border_side":0,"arc_width":30,"min":17,"max":27,"measured_rule":"BME280#Temperature","humidity_rule":"BME280#Humidity","berry_run":"return def (lvh) lvh._lv_obj.post_config() end"}
 
   {"id":30,"obj":"tab","parentid":10,"text":"\ue9f6","tab_text_font":"A:title_symbols.font","pad_all":2}
 
