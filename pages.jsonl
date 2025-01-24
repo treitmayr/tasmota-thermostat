@@ -1,7 +1,7 @@
 {"page":0,"comment":"---------- Upper stat line ----------"}
 {"id":0,"text_color":"#FFFFFF"}
 {"id":11,"obj":"label","x":0,"y":0,"w%":100,"pad_left":10,"h":23,"bg_color":"#D00000","bg_opa":255,"radius":0,"border_side":0,"text":"Thermostat","text_font":"montserrat-20"}
-{"id":15,"obj":"label","x":291,"y":2,"w":29,"h":20,"bg_opa":0,"radius":0,"border_side":0,"text":"\ue1be","text_font":"A:medium.font"}
+{"id":15,"obj":"label","x":291,"y":1,"w":29,"h":20,"bg_opa":0,"radius":0,"border_side":0,"text":"\ue1be","text_font":"A:medium.font"}
 {"id":16,"obj":"lv_wifi_arcs","x":251,"y":0,"w":29,"h":20,"radius":0,"border_side":0,"bg_color":"#000000","line_color":"#FFFFFF"}
 {"id":17,"obj":"lv_clock","x":180,"y":3,"w":55,"h":16,"radius":0,"border_side":0}
 
@@ -10,7 +10,7 @@
 {"id":10,"obj":"tabview","x":0,"y":23,"h%":80,"w%":100,"tab_bar_size":45,"btn_pos":1}
 
   {"id":20,"obj":"tab","parentid":10,"text":"\ue9e4","tab_text_font":"A:title_symbols.font","pad_all":2}
-    {"id":21,"obj":"full_thermostat","parentid":20,"x":0,"y":10,"h%":100,"w%":100,"border_side":0,"arc_width":30,"min":17,"max":27,"measured_rule":"BME280#Temperature","humidity_rule":"BME280#Humidity","berry_run":"return def (lvh) lvh._lv_obj.post_config() end"}
+    {"id":21,"obj":"full_thermostat","parentid":20,"x":0,"y":10,"h%":100,"w%":100,"border_side":0,"arc_width":30,"min":17,"max":27,"output_relay":1,"measured_rule":"BME280#Temperature","humidity_rule":"BME280#Humidity","berry_run":"return def (lvh) lvh._lv_obj.post_config() end"}
 
   {"id":30,"obj":"tab","parentid":10,"text":"\ue9f6","tab_text_font":"A:title_symbols.font","pad_all":2}
 

@@ -32,9 +32,21 @@ class full_thermostat: lv_thermostat_card
 
 	def init(parent)
 		super(self).init(parent)
-		self._t = thermostat()
+		var t = thermostat()
+		#t.set_pwm(30, 20, 4)
+		t.use_average(20)
+		self._t = t
+
 		self._got = ''
 	end
+
+	def set_output_relay(relay_num)
+		self._t.set_output_relay(int(relay_num))
+	end
+
+	def set_time_manual_to_auto(mins)
+        self._t.set_time_manual_to_auto(mins)
+    end
 
 	def setpoint_cb(t)
 		self._t.set_target_temp(t)

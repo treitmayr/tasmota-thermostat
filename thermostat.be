@@ -6,9 +6,81 @@ class thermostat
 
     var lsens_name, lsens_key
     var use_cron
+    var _trigger
+    var _override
+    var _samp
+    var _sampc
+    var _sum
 
     def init()
         self.use_cron = false
+        self._trigger = f"Power{self.get_output_relay()}"
+        self._override = false
+        self._samp = 1
+        self._sampc = 0
+        self._sum = 0.0
+        tasmota.add_rule(self._trigger, / val -> self._pwr_event(val), self)
+    end
+
+    def set_output_relay(relay_num)
+        tasmota.remove_rule(self._trigger, self)
+        tasmota.cmd(f"OutputRelaySet {relay_num}")
+        self._trigger = f"Power{self.get_output_relay()}"
+        tasmota.add_rule(self._trigger, / val -> self._pwr_event(val), self)
+    end
+
+    def use_average(samples)
+        self._samp = samples
+    end
+
+    def _pwr_event(val)
+        print(f"{val=}")
+        val = self._is_on(val)
+        print(f" {val=}")
+        tasmota.publish_rule(format('{"Thermostat":{"relay_state":%d}}', val))
+    end
+
+    def _is_on(val)
+        import string
+        return (val == 1 || val == '1' || string.toupper(str(val)) == 'ON') ? 1 : 0
+    end
+
+    def get_output_relay()
+        return tasmota.cmd("OutputRelaySet")["OutputRelaySet1"]
+    end
+
+    def set_enable_output(enable)
+        var val = enable ? 1 : 0
+        tasmota.cmd(f"EnableOutputSet {val}")
+    end
+
+    def override_on(secs)
+        tasmota.remove_timer("thermovrr")
+        self.set_enable_output(false)
+        self._override = true
+        tasmota.cmd(f"Power{self.get_output_relay()} On")
+        tasmota.set_timer(int(secs) * 1000, / -> self._override_done(), "thermovrr")
+    end
+
+    def override_off(secs)
+        tasmota.remove_timer("thermovrr")
+        self.set_enable_output(false)
+        self._override = true
+        tasmota.cmd(f"Power{self.get_output_relay()} Off")
+        tasmota.set_timer(int(secs) * 1000, / -> self._override_done(), "thermovrr")
+    end
+
+    def override_abort()
+        tasmota.remove_timer("thermovrr")
+        if self._override
+            self._override_done()
+        end
+    end
+
+    def _override_done()
+        self._override = false
+        tasmota.publish_rule('{"Thermostat":{"override":0}}')
+        self.set_enable_output(true)
     end
 
     def set_pwm(cycle_time, max_on, min_on)
@@ -78,8 +150,15 @@ class thermostat
     end
 
     def set_measured_temp(temp)
-        tasmota.log(f"THS: Measured temperature {temp}", 4)
-        tasmota.cmd(f"TempMeasuredSet {temp}")
+        self._sum += temp
+        self._sampc += 1
+        if self._sampc == self._samp
+            temp = self._sum / self._samp
+            tasmota.log(f"THS: Measured temperature {temp}", 4)
+            tasmota.cmd(f"TempMeasuredSet {temp}")
+            self._sampc = 0
+            self._sum = 0.0
+        end
     end
 
     def _update_measured_temp()
@@ -88,6 +167,10 @@ class thermostat
 
     def enable()
         tasmota.cmd("ThermostatModeSet 1")
+    end
+
+    def disable()
+        tasmota.cmd("ThermostatModeSet 0")
     end
 
     def set_target_temp(temp)

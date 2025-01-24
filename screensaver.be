@@ -1,4 +1,7 @@
 class screensaver
+
+	static var _event_template = '{"Screensaver":{"value":%d}}'
+
     var _dly
     var _dim_on
     var _dim_off
@@ -26,16 +29,28 @@ class screensaver
         self._released()
     end
 
+    def set_delay(val)
+        tasmota.remove_timer("scrnsvr")
+        self._dly = tasmota.int(val, 0, 3600) * 1000
+        self._expired()
+    end
+
+    def set_dim_on(val)
+        self._dim_on = tasmota.int(val, 0, 100)
+    end
+
+    def set_dim_off(val)
+        self._dim_off = tasmota.int(val, 0, 100)
+    end
+
     def turn_off()
         tasmota.remove_timer("scrnsvr")
         self._modal.add_flag(lv.OBJ_FLAG_CLICKABLE)
-        import display
-        display.dimmer(self._dim_off)
+        self._turn_on_off(false)
     end
 
     def _pressed()
-        import display
-        display.dimmer(self._dim_on)
+        self._turn_on_off(true)
     end
 
     def _released()
@@ -43,19 +58,23 @@ class screensaver
         self._expired()
     end
 
-    def _tmr_off()
-        tasmota.remove_timer("scrnsvr")
+    def _expired()
+        if self._dly > 0
+            var inact = self._disp.get_inactive_time()
+            if inact >= self._dly
+                self._modal.add_flag(lv.OBJ_FLAG_CLICKABLE)
+                self._turn_on_off(false)
+            else
+                tasmota.set_timer(self._dly + 500 - inact, / -> self._expired(), "scrnsvr")
+            end
+        end
     end
 
-    def _expired()
-        var inact = self._disp.get_inactive_time()
-        if inact >= self._dly
-            self._modal.add_flag(lv.OBJ_FLAG_CLICKABLE)
-            import display
-            display.dimmer(self._dim_off)
-        else
-            tasmota.set_timer(self._dly + 500 - inact, / -> self._expired(), "scrnsvr")
-        end
+    def _turn_on_off(turn_on)
+        turn_on = turn_on ? 1 : 0
+        import display
+        display.dimmer([self._dim_off, self._dim_on][turn_on])
+        tasmota.publish_rule(format(self._event_template, turn_on))
     end
 
 end
