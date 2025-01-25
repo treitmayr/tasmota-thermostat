@@ -1,5 +1,5 @@
 # berry wrapper around "thermostat" tasmota functionality
-
+#class tasmota end class lv end
 import json
 
 class thermostat
@@ -8,17 +8,16 @@ class thermostat
     var use_cron
     var _trigger
     var _override
-    var _samp
-    var _sampc
-    var _sum
+    var _winlen        # length of window [ms]
+    var _winend        # end of sample window
+    var _scnt          # sample count
+    var _sum           # sample sum
 
     def init()
         self.use_cron = false
         self._trigger = f"Power{self.get_output_relay()}"
         self._override = false
-        self._samp = 1
-        self._sampc = 0
-        self._sum = 0.0
+        self.set_measure_interval(1)
         tasmota.add_rule(self._trigger, / val -> self._pwr_event(val), self)
     end
 
@@ -29,24 +28,25 @@ class thermostat
         tasmota.add_rule(self._trigger, / val -> self._pwr_event(val), self)
     end
 
-    def use_average(samples)
-        self._samp = samples
+    def get_output_relay()
+        return tasmota.cmd("OutputRelaySet")["OutputRelaySet1"]
+    end
+
+    def set_measure_interval(secs)
+        self._winlen = secs * 1000 - 200          # -200 ms to account for event processing
+        self._winend = tasmota.millis(self._winlen)
+        self._scnt = 0
+        self._sum = 0.0
     end
 
     def _pwr_event(val)
-        print(f"{val=}")
         val = self._is_on(val)
-        print(f" {val=}")
         tasmota.publish_rule(format('{"Thermostat":{"relay_state":%d}}', val))
     end
 
     def _is_on(val)
         import string
         return (val == 1 || val == '1' || string.toupper(str(val)) == 'ON') ? 1 : 0
-    end
-
-    def get_output_relay()
-        return tasmota.cmd("OutputRelaySet")["OutputRelaySet1"]
     end
 
     def set_enable_output(enable)
@@ -114,55 +114,56 @@ class thermostat
         end
     end
 
-    def use_local_sensor(name, key)
-        var res, ress
-        if name
-            self.lsens_name = name
-            if key
-                self.lsens_key = key
-            else
-                self.lsens_key = "Temperature"
-            end
-            ress = tasmota.read_sensors()
-            res = json.load(ress)
-            if !res.contains(self.lsens_name)
-                tasmota.log(f"THS: Cannot find sensor '{self.lsens_name}' in '{ress}'", 1)
-            elif !res[self.lsens_name].contains(self.lsens_key)
-                tasmota.log(f"THS: Cannot find key '{self.lsens_key}' in '{res[name]}'", 1)
-            else
-                tasmota.log(f"THS: Using local sensor {self.lsens_name}.{self.lsens_key}", 2)
-                tasmota.cmd("SensorInputSet 0")
-                self.set_measured_temp(res[self.lsens_name][self.lsens_key])
-                if self.use_cron
-                    tasmota.remove_cron("termostat_update_measured")
-                end
-                tasmota.add_cron("*/2 * * * * *", def () self._update_measured_temp() end, "termostat_update_measured")
-                self.use_cron = true
-            end
-        else
-            if self.use_cron
-                tasmota.remove_cron("termostat_update_measured")
-                self.use_cron = false
-            end
-            tasmota.log(f"THS: Using default local sensor", 2)
-            tasmota.cmd("SensorInputSet 1")
-        end
-    end
+    # def use_local_sensor(name, key)
+    #     var res, ress
+    #     if name
+    #         self.lsens_name = name
+    #         if key
+    #             self.lsens_key = key
+    #         else
+    #             self.lsens_key = "Temperature"
+    #         end
+    #         ress = tasmota.read_sensors()
+    #         res = json.load(ress)
+    #         if !res.contains(self.lsens_name)
+    #             tasmota.log(f"THS: Cannot find sensor '{self.lsens_name}' in '{ress}'", 1)
+    #         elif !res[self.lsens_name].contains(self.lsens_key)
+    #             tasmota.log(f"THS: Cannot find key '{self.lsens_key}' in '{res[name]}'", 1)
+    #         else
+    #             tasmota.log(f"THS: Using local sensor {self.lsens_name}.{self.lsens_key}", 2)
+    #             tasmota.cmd("SensorInputSet 0")
+    #             self.set_measured_temp(res[self.lsens_name][self.lsens_key])
+    #             if self.use_cron
+    #                 tasmota.remove_cron("termostat_update_measured")
+    #             end
+    #             tasmota.add_cron("*/2 * * * * *", def () self._update_measured_temp() end, "termostat_update_measured")
+    #             self.use_cron = true
+    #         end
+    #     else
+    #         if self.use_cron
+    #             tasmota.remove_cron("termostat_update_measured")
+    #             self.use_cron = false
+    #         end
+    #         tasmota.log(f"THS: Using default local sensor", 2)
+    #         tasmota.cmd("SensorInputSet 1")
+    #     end
+    # end
+
+    # def _update_measured_temp()
+    #     self.set_measured_temp(json.load(tasmota.read_sensors())[self.lsens_name][self.lsens_key])
+    # end
 
     def set_measured_temp(temp)
         self._sum += temp
-        self._sampc += 1
-        if self._sampc == self._samp
-            temp = self._sum / self._samp
+        self._scnt += 1
+        if tasmota.time_reached(self._winend)
+            self._winend = tasmota.millis(self._winlen)          # set new end of measurement window
+            temp = self._sum / self._scnt
             tasmota.log(f"THS: Measured temperature {temp}", 4)
             tasmota.cmd(f"TempMeasuredSet {temp}")
-            self._sampc = 0
+            self._scnt = 0
             self._sum = 0.0
         end
-    end
-
-    def _update_measured_temp()
-        self.set_measured_temp(json.load(tasmota.read_sensors())[self.lsens_name][self.lsens_key])
     end
 
     def enable()

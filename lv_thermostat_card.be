@@ -282,6 +282,7 @@ class lv_thermostat_card : lv.obj
             # not fully initialized yet
             return
         end
+        tasmota.gc()    # try to get around OOM condition - this makes the shown free memory much more stable!
         var diff = real(self._max - self._min)
         var mes_angle = self._arc_angle * (self._measured_temp - self._min) / diff
         var set_angle = self._arc_angle * (self._setpoint - self._min) / diff

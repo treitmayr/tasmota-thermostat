@@ -46,4 +46,4 @@ def remove_spaces(code, keep_lines=True):
 
 
 s = sys.stdin.read()
-print(remove_spaces(s, True))
+print(remove_spaces(s, True).rstrip())

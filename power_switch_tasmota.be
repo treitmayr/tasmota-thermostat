@@ -1,7 +1,7 @@
 import lv
 import mqtt
 
-class power_switch_tasmota: lv.switch
+class power_switch: lv.switch
 
     var _remote_name
     var _prepare_enable
@@ -20,7 +20,7 @@ class power_switch_tasmota: lv.switch
         self.add_state(lv.STATE_DISABLED)
 
         # get informed about user actions
-        self.add_event_cb( / obj, event -> self._switch_changed(obj, event), lv.EVENT_VALUE_CHANGED, 0)
+        self.add_event_cb( / -> self._switch_changed(), lv.EVENT_VALUE_CHANGED, 0)
 
         # track connected state to enable/disable the switch
         tasmota.add_rule("Mqtt#Connected", / -> self._mqtt_connect())
@@ -222,4 +222,4 @@ class power_switch_tasmota: lv.switch
 
 end
 
-return power_switch_tasmota
+return power_switch

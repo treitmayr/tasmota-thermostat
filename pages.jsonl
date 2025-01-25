@@ -14,17 +14,19 @@
 
   {"id":30,"obj":"tab","parentid":10,"text":"\ue9f6","tab_text_font":"A:title_symbols.font","pad_all":2}
 
-    {"id":31,"obj":"label","parentid":30,"x":0,"y":33,"w%":50,"text":"Stereoanlage","text_font":"montserrat-20"}
-    {"id":32,"obj":"power_switch_tasmota","parentid":30,"x%":65,"y":30,"w":90,"h":30,"remote":"tasmota3","text_checked":"Ein","text_unchecked":"Aus","confirm_power":25,"confirm_text_off":"Stereoanlage wirklich abschalten?"}
+    {"id":31,"obj":"label","parentid":30,"x":10,"y":33,"w%":50,"text":"Stereoanlage","text_font":"montserrat-20"}
+    {"id":32,"obj":"power_switch","parentid":30,"x%":65,"y":30,"w":90,"h":30,"remote":"tasmota3","text_checked":"Ein","text_unchecked":"Aus","confirm_power":25,"confirm_text_off":"Stereoanlage wirklich abschalten?"}
 
-    {"id":33,"obj":"label","parentid":30,"x":0,"y":93,"w%":50,"text":"3D-Drucker","text_font":"montserrat-20"}
-    {"id":34,"obj":"power_switch_tasmota","parentid":30,"x%":65,"y":90,"w":90,"h":30,"remote":"tasmota9","text_checked":"Ein","text_unchecked":"Aus","confirm_power":3,"confirm_text_off":"3D-Drucker wirklich abschalten?"}
+    {"id":33,"obj":"label","parentid":30,"x":10,"y":93,"w%":50,"text":"3D-Drucker","text_font":"montserrat-20"}
+    {"id":34,"obj":"power_switch","parentid":30,"x%":65,"y":90,"w":90,"h":30,"remote":"tasmota9","text_checked":"Ein","text_unchecked":"Aus","confirm_power":3,"confirm_text_off":"3D-Drucker wirklich abschalten?"}
 
-    {"id":35,"obj":"label","parentid":30,"x":0,"y":153,"w%":50,"text":"Ventilator","text_font":"montserrat-20"}
-    {"id":36,"obj":"power_switch_tasmota","parentid":30,"x%":65,"y":150,"w":90,"h":30,"remote":"tasmota2","text_checked":"Ein","text_unchecked":"Aus"}
+    {"id":35,"obj":"label","parentid":30,"x":10,"y":153,"w%":50,"text":"Ventilator","text_font":"montserrat-20"}
+    {"id":36,"obj":"power_switch","parentid":30,"x%":65,"y":150,"w":90,"h":30,"remote":"tasmota2","text_checked":"Ein","text_unchecked":"Aus"}
 
-    {"id":37,"obj":"label","parentid":30,"x":0,"y":213,"w%":50,"text":"Lichtanlage","text_font":"montserrat-20"}
-    {"id":38,"obj":"power_switch_tasmota","parentid":30,"x%":65,"y":210,"w":90,"h":30,"remote":"tasmota1","text_checked":"Ein","text_unchecked":"Aus"}
+    {"id":37,"obj":"label","parentid":30,"x":10,"y":213,"w%":50,"text":"Lichtanlage","text_font":"montserrat-20"}
+    {"id":38,"obj":"power_switch","parentid":30,"x%":65,"y":210,"w":90,"h":30,"remote":"tasmota1","text_checked":"Ein","text_unchecked":"Aus"}
 
   {"id":50,"obj":"tab","parentid":10,"text":"\ue922","tab_text_font":"A:title_symbols.font","pad_all":2}
     {"id":51,"obj":"lv_tasmota_info","parentid":50,"x":3,"y":25,"w":251,"h":40,"radius":0}
+
+{"id-disabled":1000,"obj":"screensaver","delay":30}
