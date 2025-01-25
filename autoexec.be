@@ -34,7 +34,7 @@ class full_thermostat: lv_thermostat_card
 		super(self).init(parent)
 		var t = thermostat()
 		#t.set_pwm(30, 20, 4)
-		t.use_average(20)
+		t.set_measure_interval(20)   # 2 s interval
 		self._t = t
 
 		self._got = ''
@@ -74,8 +74,7 @@ end
 
 haspmota.start(false, tasmota.wd + "pages.jsonl")
 
-var scrsvr = screensaver(30)
-global.setmember("scrsvr", scrsvr)     # prevent garbage collection of screensaver
+global.scrsvr = screensaver().set_delay(30)    # prevent garbage collection of screensaver
 
 import global
 
