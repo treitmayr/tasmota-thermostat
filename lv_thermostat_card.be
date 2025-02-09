@@ -1,6 +1,7 @@
 import persist
 import string
 import math
+import avg_interval
 
 # lv_thermostat_card class
 
@@ -26,6 +27,8 @@ class lv_thermostat_card : lv.obj
     var _hum_rule
     var _hot_color
     var _cold_color
+    var _avg
+    var _arc_width
 
     def init(parent)
         super(self).init(parent)
@@ -34,12 +37,16 @@ class lv_thermostat_card : lv.obj
         self._max = 0
         self._hot_color = lv.color(lv.COLOR_ORANGE)
         self._cold_color = lv.color(lv.COLOR_BLUE)
+        self._avg = avg_interval().set_interval(5)
+        self._arc_width = 0
 
         # create main arc
         var arc = lv.arc(self)
         arc.set_bg_angles(0, self._arc_angle)
         arc.set_change_rate(30)         # °/s
-        arc.add_flag(lv.OBJ_FLAG_ADV_HITTEST)
+        arc.add_flag(lv.OBJ_FLAG_ADV_HITTEST)     # limit presses to background arc
+        arc.remove_style(0, lv.PART_KNOB)         # do not display knob
+        arc.remove_style(0, lv.PART_INDICATOR)    # do not display arc from start to current value
         arc.add_event_cb( / -> self._arc_changed(), lv.EVENT_VALUE_CHANGED, 0)
         self.arc = arc
 
@@ -154,8 +161,12 @@ class lv_thermostat_card : lv.obj
         t = int(t)
         self.arc.set_style_arc_width(t, lv.PART_MAIN | lv.STATE_DEFAULT)
         self.diff_arc.set_style_arc_width(t, lv.PART_MAIN | lv.STATE_DEFAULT)
-        self.arc.set_style_arc_width(t, lv.PART_INDICATOR | lv.STATE_DEFAULT)
+        #self.arc.set_style_arc_width(t, lv.PART_INDICATOR | lv.STATE_DEFAULT)
         self.diff_arc.set_style_arc_width(t, lv.PART_INDICATOR | lv.STATE_DEFAULT)
+        self._arc_width = t
+        self.arc.set_style_pad_all(t/2, lv.PART_INDICATOR)
+        self.arc.set_style_pad_all(t/2, lv.PART_KNOB)
+        self.arc.set_ext_click_area(t/2)        # extend clickable area
 
         var knob_size = t
         self._setpoint_knob.set_size(knob_size, knob_size)
@@ -169,17 +180,17 @@ class lv_thermostat_card : lv.obj
     end
 
     def set_setpoint(t)
-        self._setpoint = real(t)
+        self._setpoint = (t == nil) ? 16.0 : real(t)
         self._set_setpoint()
         self._write_persistent_storage()
     end
 
     def _set_setpoint()
         self.arc.set_value(int(self._setpoint * self._setpoint_resolution))
-        self.arc.align_obj_to_angle(self._setpoint_knob, 0)
+        self.arc.align_obj_to_angle(self._setpoint_knob, -self._arc_width/2)
         self._update_diff_arc()
         self._update__setpoint_label()
-        self._update__temp_label()
+        self._update_temp_label()
         self._update__setpoint_label()
         self.setpoint_cb(self._setpoint)
     end
@@ -192,10 +203,18 @@ class lv_thermostat_card : lv.obj
     end
 
     def set_measured(t)
-        self._measured_temp = real(t)
-        self._update_diff_arc()
-        self._update__temp_label()
-        self.measured_temp_cb(self._measured_temp)
+        t = real(t)
+        #tasmota.set_timer(0, /-> self._set_measured_defer(t))
+    #end
+
+    #def _set_measured_defer(t)
+        var res = self._avg.add_value(t)
+        if res != nil
+            self._measured_temp = res
+            self._update_diff_arc()
+            self._update_temp_label()
+        end
+        self.measured_temp_cb(t)
     end
 
     def get_measured_temp(t)
@@ -208,7 +227,7 @@ class lv_thermostat_card : lv.obj
     def set_humidity(t)
         self._humidity = int(t)
         self._update_diff_arc()
-        self._update__temp_label()
+        self._update_temp_label()
     end
 
     def get_humidity(t)
@@ -282,7 +301,6 @@ class lv_thermostat_card : lv.obj
             # not fully initialized yet
             return
         end
-        tasmota.gc()    # try to get around OOM condition - this makes the shown free memory much more stable!
         var diff = real(self._max - self._min)
         var mes_angle = self._arc_angle * (self._measured_temp - self._min) / diff
         var set_angle = self._arc_angle * (self._setpoint - self._min) / diff
@@ -299,7 +317,7 @@ class lv_thermostat_card : lv.obj
             if lv.color_to_u32(self.diff_arc.get_style_arc_color(lv.PART_INDICATOR)) != col32
                 var light = lv.color_lighten(col, 160)
                 self.diff_arc.set_style_arc_color(col, lv.PART_INDICATOR)
-                self.arc.set_style_arc_color(light, lv.PART_INDICATOR)
+                #self.arc.set_style_arc_color(light, lv.PART_INDICATOR)
                 self._setpoint_knob.set_local_style_prop(lv.STYLE_BORDER_COLOR, col32, lv.PART_MAIN)
                 self._temp_knob.set_local_style_prop(lv.STYLE_BORDER_COLOR, lv.color_to_u32(light), lv.PART_MAIN)
             end
@@ -311,14 +329,15 @@ class lv_thermostat_card : lv.obj
             _update_it(mes_angle, set_angle, lv.ARC_MODE_REVERSE, self._hot_color)
         end
         self.diff_arc.align_obj_to_angle(self._temp_knob, 0)
+        tasmota.gc()    # try to get around OOM condition - this makes the shown free memory much more stable!
     end
 
     def _arc_changed(obj, evt)
         self._setpoint = real(self.arc.get_value()) / self._setpoint_resolution
-        self.arc.align_obj_to_angle(self._setpoint_knob, 0)
+        self.arc.align_obj_to_angle(self._setpoint_knob, -self._arc_width/2)
         self._update_diff_arc()
         self._update__setpoint_label()
-        self._update__temp_label()
+        self._update_temp_label()
         self._write_persistent_storage()
         self.setpoint_cb(self._setpoint)
     end
@@ -347,7 +366,7 @@ class lv_thermostat_card : lv.obj
         self._setpoint_unit.align_to(self._setpoint_label, lv.ALIGN_OUT_RIGHT_TOP, 0, 0)
     end
 
-    def _update__temp_label()
+    def _update_temp_label()
         var s
         s = f"\uf076 {self._measured_temp:%.1f}°C"
         if self._humidity != nil
@@ -368,8 +387,11 @@ class lv_thermostat_card : lv.obj
             try
                 self._setpoint = real(persist.setpoint)
             except ..
-                tasmota.log(f"Invalid setpoint '{persist.setpoint}' in persistent memory")
+                tasmota.log(f"Invalid setpoint '{persist.setpoint}' in persistent memory", 2)
+                self._setpoint = 16.0
             end
+        else
+            self._setpoint = 16.0
         end
     end
 

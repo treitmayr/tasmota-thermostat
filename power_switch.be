@@ -20,7 +20,7 @@ class power_switch: lv.switch
         self.add_state(lv.STATE_DISABLED)
 
         # get informed about user actions
-        self.add_event_cb( / -> self._switch_changed(), lv.EVENT_VALUE_CHANGED, 0)
+        self.add_event_cb(/ obj, event -> self._switch_changed(obj, event), lv.EVENT_VALUE_CHANGED, 0)
 
         # track connected state to enable/disable the switch
         tasmota.add_rule("Mqtt#Connected", / -> self._mqtt_connect())
@@ -160,12 +160,8 @@ class power_switch: lv.switch
         import json
         var obj = json.load(payload_s)
         var res
-        def traverse(keys)
-            res = self._traverse(obj, keys)
-            return res != nil
-        end
-        #print(f"topic={topic}, idx={idx}, payload_s={payload_s}")
-        if traverse(["POWER"])
+        print(f"topic={topic}, idx={idx}, payload_s={payload_s}")
+        if (res := self._traverse(obj, ["POWER"])) != nil
             if res == "ON"
                 self.add_state(lv.STATE_CHECKED)
                 self._update_text(true)
@@ -180,7 +176,7 @@ class power_switch: lv.switch
             end
         elif topic == self._get_topic("stat", "STATUS10")
             mqtt.unsubscribe(self._get_topic("stat", "STATUS10"))
-            if traverse(["StatusSNS", "ENERGY", "Power"])
+            if (res := self._traverse(obj, ["StatusSNS", "ENERGY", "Power"])) != nil
                 if res >= self._confirm_power
                     self._confirm(self._confirm_text_off)
                 else

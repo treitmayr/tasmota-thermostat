@@ -86,24 +86,26 @@ do
             else
                 #diff -u <(echo -n "${old_content}"|hexdump -C) <(echo -n "${new_content}"|hexdump -C) || : # >/dev/null
                 echo "File '$fname' changed"
+                delete_file "/${fname}c"
                 echo -n "    uploading "
                 read_rootdir
                 if echo -n "${new_content}" | upload_file "$fname" ${#new_content}
                 then
                     echo "successful"
                     echo -n "    compiling "
-                    any_changes='x'
                     res="$(run_berry_command "tasmota.compile(\"$fname\")")"
                     if [ "$(echo "$res" | xargs)" = 'true' ]
                     then
                         echo "successful"
-                        # delete compiled file
-                        #delete_file "/${fname}c"
+                        any_changes='x'
                     else
                         echo "with errors:"
                         echo "'$res'" | sed 's/^/\t/'
                         any_errors='x'
+                        echo -n "${new_content}" | upload_file "$fname" ${#new_content}
                     fi
+                    # delete compiled file
+                    #delete_file "/${fname}c"
                 else
                     echo "failed"
                     any_errors='x'

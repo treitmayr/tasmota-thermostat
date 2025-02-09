@@ -1,6 +1,7 @@
 # berry wrapper around "thermostat" tasmota functionality
 #class tasmota end class lv end
 import json
+import avg_interval
 
 class thermostat
 
@@ -8,35 +9,37 @@ class thermostat
     var use_cron
     var _trigger
     var _override
-    var _winlen        # length of window [ms]
-    var _winend        # end of sample window
-    var _scnt          # sample count
-    var _sum           # sample sum
+    var _avg
+    var _orelay
 
     def init()
         self.use_cron = false
-        self._trigger = f"Power{self.get_output_relay()}"
         self._override = false
-        self.set_measure_interval(1)
+        self._avg = avg_interval()
+        try
+            self._orelay = tasmota.cmd("OutputRelaySet")["OutputRelaySet1"]
+        except ..
+            tasmota.log(f"Missing support for Tasmota termostat driver", 1)
+            return
+        end
+        self._trigger = f"Power{self._orelay}"
         tasmota.add_rule(self._trigger, / val -> self._pwr_event(val), self)
     end
 
     def set_output_relay(relay_num)
         tasmota.remove_rule(self._trigger, self)
-        tasmota.cmd(f"OutputRelaySet {relay_num}")
-        self._trigger = f"Power{self.get_output_relay()}"
+        self._orelay = int(relay_num)
+        tasmota.cmd(f"OutputRelaySet {self._orelay}")
+        self._trigger = f"Power{self._orelay}"
         tasmota.add_rule(self._trigger, / val -> self._pwr_event(val), self)
     end
 
     def get_output_relay()
-        return tasmota.cmd("OutputRelaySet")["OutputRelaySet1"]
+        return self._orelay
     end
 
     def set_measure_interval(secs)
-        self._winlen = secs * 1000 - 200          # -200 ms to account for event processing
-        self._winend = tasmota.millis(self._winlen)
-        self._scnt = 0
-        self._sum = 0.0
+        self._avg.set_interval(secs)
     end
 
     def _pwr_event(val)
@@ -58,7 +61,7 @@ class thermostat
         tasmota.remove_timer("thermovrr")
         self.set_enable_output(false)
         self._override = true
-        tasmota.cmd(f"Power{self.get_output_relay()} On")
+        tasmota.cmd(f"Power{self._orelay} On")
         tasmota.set_timer(int(secs) * 1000, / -> self._override_done(), "thermovrr")
     end
 
@@ -66,7 +69,7 @@ class thermostat
         tasmota.remove_timer("thermovrr")
         self.set_enable_output(false)
         self._override = true
-        tasmota.cmd(f"Power{self.get_output_relay()} Off")
+        tasmota.cmd(f"Power{self._orelay} Off")
         tasmota.set_timer(int(secs) * 1000, / -> self._override_done(), "thermovrr")
     end
 
@@ -154,15 +157,10 @@ class thermostat
     # end
 
     def set_measured_temp(temp)
-        self._sum += temp
-        self._scnt += 1
-        if tasmota.time_reached(self._winend)
-            self._winend = tasmota.millis(self._winlen)          # set new end of measurement window
-            temp = self._sum / self._scnt
+        temp = self._avg.add_value(temp)
+        if temp != nil
             tasmota.log(f"THS: Measured temperature {temp}", 4)
             tasmota.cmd(f"TempMeasuredSet {temp}")
-            self._scnt = 0
-            self._sum = 0.0
         end
     end
 
