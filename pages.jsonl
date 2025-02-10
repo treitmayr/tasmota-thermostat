@@ -8,9 +8,10 @@
 {"page":1,"comment":"---------- Page 1 ----------"}
 
 {"id":10,"obj":"tabview","x":0,"y":23,"h%":80,"w%":100,"tab_bar_size":45,"btn_pos":1}
+{"comment":"Add to disable finger-scroll: berry_run:'return def (lvh) lvh._lv_obj.get_content().clear_flag(lv.OBJ_FLAG_SCROLLABLE) end'"}
 
   {"id":20,"obj":"tab","parentid":10,"text":"\ue9e4","tab_text_font":"A:title_symbols.font","pad_all":2}
-    {"id":21,"obj":"full_thermostat","parentid":20,"x":0,"y":10,"h%":100,"w%":100,"border_side":0,"arc_width":40,"min":17,"max":27,"output_relay":1,"measured_rule":"SHT3X#Temperature","humidity_rule":"SHT3X#Humidity","berry_run":"return def (lvh) lvh._lv_obj.post_config() end"}
+    {"id":21,"obj":"full_thermostat","parentid":20,"x":0,"y":10,"h%":100,"w%":100,"border_side":0,"arc_width":40,"min":17,"max":27,"measured_rule":"SHT3X#Temperature","humidity_rule":"SHT3X#Humidity"}
 
   {"id":30,"obj":"tab","parentid":10,"text":"\ue9f6","tab_text_font":"A:title_symbols.font","pad_all":2}
 

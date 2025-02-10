@@ -123,11 +123,12 @@ class lv_thermostat_card : lv.obj
         self._read_persistent_storage()
 
         # delayed initialization
-        tasmota.set_timer(5000, / -> self.post_config(), "thermini")
+        tasmota.defer(/ -> self.post_config())
+        #tasmota.set_timer(5000, / -> self.post_config(), "thermini")
     end
 
     def post_config()
-        tasmota.remove_timer("thermini")
+        #tasmota.remove_timer("thermini")
         self._set_setpoint()
     end
 
@@ -204,11 +205,14 @@ class lv_thermostat_card : lv.obj
 
     def set_measured(t)
         t = real(t)
-        #tasmota.set_timer(0, /-> self._set_measured_defer(t))
-    #end
+        tasmota.defer(/-> self._set_measured_defer(t))
+    end
 
-    #def _set_measured_defer(t)
+    def _set_measured_defer(t)
         var res = self._avg.add_value(t)
+        if self._measured_temp == nil
+            res = t
+        end
         if res != nil
             self._measured_temp = res
             self._update_diff_arc()
@@ -265,7 +269,7 @@ class lv_thermostat_card : lv.obj
     end
 
     def set_hot_color(s)
-        print(f"{s} {type(s)}")
+        #print(f"{s} {type(s)}")
         self._hot_color = self._parse_color(s)
     end
 

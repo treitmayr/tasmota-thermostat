@@ -3,7 +3,7 @@
 import json
 import avg_interval
 
-class thermostat
+class tasmota_thermostat
 
     var lsens_name, lsens_key
     var use_cron
@@ -178,4 +178,4 @@ class thermostat
 
 end
 
-return thermostat
+return tasmota_thermostat
