@@ -21,6 +21,7 @@ class ch422g
         end
     end
 
+    # set all GPIO pins to output with the given pin states
     def set_to_output(state, use_open_drain)
         # first prepare the output state
         self.set_outputs(state)
@@ -33,11 +34,13 @@ class ch422g
         self._write_to(self._reg_wr_set, self._cur_wr_set)
     end
 
+    # set all GPIO pins to input
     def set_to_input()
         self._cur_wr_set = 0x00
         self._write_to(self._reg_wr_set, self._cur_wr_set)
     end
 
+    # set all GPIO to the given output states (assumes that pins are in output mode already)
     def set_outputs(state)
         self._cur_wr_io = state & 0xff
         self._cur_wr_oc = (state & 0xf00) >> 8
@@ -46,6 +49,7 @@ class ch422g
         self._write_to(self._reg_wr_oc, self._cur_wr_oc)
     end
 
+    # set a single GPIO to the given output state (assumes that pins are in output mode already)
     def set_output_pin(pin, state)
         var mask
         if pin >= 0 && pin < 8
@@ -70,10 +74,12 @@ class ch422g
         end
     end
 
+    # return the current input state of the GPIO (assumes that pins are in input mode already)
     def get_inputs()
         return self._read_from(self._reg_rd_io)
     end
 
+    # return the current input state of a single GPIO (assumes that pins are in input mode already)
     def get_input_pin(pin)
         var ret
         var mask
@@ -86,19 +92,22 @@ class ch422g
         return ret
     end
 
+    # switch CH422G to sleep mode
     def sleep()
         self._cur_wr_set |= 0x80
         self._write_to(self._reg_wr_set, self._cur_wr_set)
     end
 
+    # wake up CH422G from sleep mode
     def wake_up()
         self._cur_wr_set &= ~0x80
         self._write_to(self._reg_wr_set, self._cur_wr_set)
     end
 
+    # I2C read access
     def _read_from(addr)
-        self._wire._request_from(addr, 1)
         var ret
+        self._wire._request_from(addr, 1)
         if self._wire._available()
            ret = self._wire._read()
         end
@@ -106,7 +115,8 @@ class ch422g
         return ret
     end
 
-    def _write_to(addr,b)
+    # I2C write access
+    def _write_to(addr, b)
         self._wire._begin_transmission(addr)
         self._wire._write(b)
         self._wire._end_transmission()
