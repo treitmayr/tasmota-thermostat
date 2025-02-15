@@ -46,6 +46,44 @@ chr()
     printf "\\$(printf '%03o' "$1")"
 }
 
+join()
+{
+    local sep="$1"
+    local res=''
+    shift
+    if [ $# -gt 0 ]
+    then
+        local IFS=''
+        res="${*/%/$sep}"
+        res="${res::-${#sep}}"
+    fi
+    echo "$res"
+}
+
+ascii_range()
+{
+    local -a res=()
+    local -a r
+    local i
+    local IFS
+    while [ $# -gt 0 ]
+    do
+        if [[ $1 == ?-? ]]
+        then
+            IFS=- read -r -a r < <(echo "$1")
+            res+=("$(printf "%d-%d" "'${r[0]}" "'${r[1]}")")
+        else
+            local i
+            for ((i=0; i < ${#1}; i++));
+            do
+                res+=("$(printf "%d\n" "'${1:i:1}")")
+            done
+        fi
+        shift
+    done
+    join ',' "${res[@]}"
+}
+
 utf8_encode()
 {
     local utf=$(($1))
@@ -84,7 +122,7 @@ utf8_encode()
 
 # shellcheck disable=SC2034 # variable name is auto-detected
 specific_args_huge_symbols=(
-    --size 54
+    --size 64
     --no-kerning
     --font "${sym_font}"
     --range "$(icon_names_to_range "${sym_font}" local_fire_department wb_sunny bedtime pan_tool power_settings_new)"
@@ -102,7 +140,8 @@ specific_args_title_symbols=(
 specific_args_medium=(
     --size 36
     --font "${text_font}"
-    --symbols '0123456789,.-°CF% '
+    --symbols ',.-°CF% ÄÜÖäöüß'
+    --range "$(ascii_range 0-9 A-Z a-z)"
     --font "${sym_font}"
     --range "$(icon_names_to_range "${sym_font}" thermostat water_drop screen_lock_landscape)"
 )

@@ -1,1 +1,6 @@
-assets
+assets/*.font
+assets/*.png
+assets/fonts
+tasmota
+test
+unused
