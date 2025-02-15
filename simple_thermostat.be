@@ -30,7 +30,7 @@ class simple_thermostat
         self._override = false
         self._o_en = false
         self._max_on = 20 * 60000
-        self._min_on = 4 * 60000
+        self._min_on = 2 * 60000
         self._min_off = 4 * 60000
         self._hyst = 0.2
         self._enabled = false

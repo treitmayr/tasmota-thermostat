@@ -1,13 +1,13 @@
 {"page":0,"comment":"---------- Upper stat line ----------"}
 {"id":0,"text_color":"#FFFFFF"}
-{"id":11,"obj":"label","x":0,"y":0,"w%":100,"pad_left":10,"h":23,"bg_color":"#D00000","bg_opa":255,"radius":0,"border_side":0,"text":"Thermostat","text_font":"montserrat-20"}
+{"id":11,"obj":"label","x":0,"y":0,"w%":100,"pad_left":10,"h":32,"bg_color":"#D00000","bg_opa":255,"radius":0,"border_side":0,"text":"Thermostat","text_font":"montserrat-28"}
 {"id":15,"obj":"label","x":291,"y":1,"w":29,"h":20,"bg_opa":0,"radius":0,"border_side":0,"text":"\ue1be","text_font":"A:medium.font"}
 {"id":16,"obj":"lv_wifi_arcs","x":251,"y":0,"w":29,"h":20,"radius":0,"border_side":0,"bg_color":"#000000","line_color":"#FFFFFF"}
 {"id":17,"obj":"lv_clock","x":180,"y":3,"w":55,"h":16,"radius":0,"border_side":0}
 
 {"page":1,"comment":"---------- Page 1 ----------"}
 
-{"id":10,"obj":"tabview","x":0,"y":23,"h%":80,"w%":100,"tab_bar_size":45,"btn_pos":1}
+{"id":10,"obj":"tabview","x":0,"y":32,"h%":80,"w%":100,"tab_bar_size":70,"btn_pos":1}
 {"comment":"Add to disable finger-scroll: berry_run:'return def (lvh) lvh._lv_obj.get_content().clear_flag(lv.OBJ_FLAG_SCROLLABLE) end'"}
 
   {"id":20,"obj":"tab","parentid":10,"text":"\ue9e4","tab_text_font":"A:title_symbols.font","pad_all":2}

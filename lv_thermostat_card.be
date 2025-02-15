@@ -43,14 +43,14 @@ class lv_thermostat_card : lv.obj
         # create main arc
         var arc = lv.arc(self)
         arc.set_bg_angles(0, self._arc_angle)
-        arc.set_change_rate(30)         # °/s
+        #arc.set_change_rate(30)         # °/s
         arc.add_flag(lv.OBJ_FLAG_ADV_HITTEST)     # limit presses to background arc
         arc.remove_style(0, lv.PART_KNOB)         # do not display knob
-        arc.remove_style(0, lv.PART_INDICATOR)    # do not display arc from start to current value
-        arc.add_event_cb( / -> self._arc_changed(), lv.EVENT_VALUE_CHANGED, 0)
+        #arc.remove_style(0, lv.PART_INDICATOR)    # do not display arc from start to current value
+        arc.add_event_cb(/-> self._arc_changed(), lv.EVENT_VALUE_CHANGED, 0)
         self.arc = arc
 
-        # create difference arc
+        # create difference arc on top of main arc
         arc = lv.arc(self.arc)
         arc.set_bg_angles(0, 1)    # will be adjusted by measurement changes
         arc.set_range(0, 1)
@@ -58,6 +58,7 @@ class lv_thermostat_card : lv.obj
         arc.clear_flag(lv.OBJ_FLAG_CLICKABLE)
         # no background arc needed
         arc.remove_style(nil, lv.PART_MAIN)
+        arc.set_style_arc_opa(lv.OPA_TRANSP, lv.PART_MAIN)
         self.diff_arc = arc
 
         for a: [self.arc, self.diff_arc]
@@ -98,18 +99,19 @@ class lv_thermostat_card : lv.obj
         label.set_text("")
         self._setpoint_label = label
 
+        font = lv.load_font("A:medium.font")
+
         label = lv.label(self.arc)
         label.set_style_pad_all(0, 0)
         label.set_style_margin_all(0, 0)
         label.align_to(self._setpoint_label, lv.ALIGN_OUT_RIGHT_TOP, 0, 0)
-        label.set_style_text_font(lv.montserrat_font(14), lv.PART_MAIN)
+        label.set_style_text_font(font, lv.PART_MAIN)
         label.set_text("°C")
         self._setpoint_unit = label
 
         label = lv.label(self.arc)
         label.set_style_pad_all(0, 0)
         label.set_style_margin_all(0, 0)
-        font = lv.load_font("A:medium.font")
         height = lv.font_get_line_height(font)
         #label.set_style_pad_top(height / 2, 0)
         label.set_style_text_font(font, lv.PART_MAIN)
@@ -160,21 +162,24 @@ class lv_thermostat_card : lv.obj
 
     def set_arc_width(t)
         t = int(t)
-        self.arc.set_style_arc_width(t, lv.PART_MAIN | lv.STATE_DEFAULT)
-        self.diff_arc.set_style_arc_width(t, lv.PART_MAIN | lv.STATE_DEFAULT)
-        #self.arc.set_style_arc_width(t, lv.PART_INDICATOR | lv.STATE_DEFAULT)
-        self.diff_arc.set_style_arc_width(t, lv.PART_INDICATOR | lv.STATE_DEFAULT)
         self._arc_width = t
-        self.arc.set_style_pad_all(t/2, lv.PART_INDICATOR)
-        self.arc.set_style_pad_all(t/2, lv.PART_KNOB)
-        self.arc.set_ext_click_area(t/2)        # extend clickable area
 
-        var knob_size = t
+        for a: [self.arc, self.diff_arc]
+            a.set_style_arc_width(t, lv.PART_MAIN | lv.STATE_DEFAULT)
+            a.set_style_arc_width(t, lv.PART_INDICATOR | lv.STATE_DEFAULT)
+        end
+
+        var knob_size = t * 3 / 2;  # 150 %
         self._setpoint_knob.set_size(knob_size, knob_size)
         self._setpoint_knob.set_style_radius(knob_size / 2, lv.PART_MAIN)
         self._setpoint_knob.set_style_border_width(knob_size / 6, lv.PART_MAIN)
 
-        knob_size = t * 3 / 10       # 30 %
+        # pad the arcs to give space for the (slightly bigger) setpoint knob
+        var pad = (knob_size - t + 1) / 2
+        self.arc.set_style_pad_all(pad, lv.PART_MAIN)
+        self.diff_arc.set_style_pad_all(pad, lv.PART_MAIN)
+
+        knob_size = t * 4 / 10       # 40 %
         self._temp_knob.set_size(knob_size, knob_size)
         self._temp_knob.set_style_radius(knob_size / 2, lv.PART_MAIN)
         self._temp_knob.set_style_border_width(knob_size / 2, lv.PART_MAIN)
@@ -188,7 +193,7 @@ class lv_thermostat_card : lv.obj
 
     def _set_setpoint()
         self.arc.set_value(int(self._setpoint * self._setpoint_resolution))
-        self.arc.align_obj_to_angle(self._setpoint_knob, -self._arc_width/2)
+        self.arc.align_obj_to_angle(self._setpoint_knob, 0)   # -self._arc_width/2)
         self._update_diff_arc()
         self._update__setpoint_label()
         self._update_temp_label()
@@ -201,6 +206,7 @@ class lv_thermostat_card : lv.obj
     end
 
     def setpoint_cb(t)
+        # to be overridden by derived class
     end
 
     def set_measured(t)
@@ -226,6 +232,7 @@ class lv_thermostat_card : lv.obj
     end
 
     def measured_temp_cb(t)
+        # to be overridden by derived class
     end
 
     def set_humidity(t)
@@ -269,7 +276,6 @@ class lv_thermostat_card : lv.obj
     end
 
     def set_hot_color(s)
-        #print(f"{s} {type(s)}")
         self._hot_color = self._parse_color(s)
     end
 
@@ -321,7 +327,7 @@ class lv_thermostat_card : lv.obj
             if lv.color_to_u32(self.diff_arc.get_style_arc_color(lv.PART_INDICATOR)) != col32
                 var light = lv.color_lighten(col, 160)
                 self.diff_arc.set_style_arc_color(col, lv.PART_INDICATOR)
-                #self.arc.set_style_arc_color(light, lv.PART_INDICATOR)
+                self.arc.set_style_arc_color(light, lv.PART_INDICATOR)
                 self._setpoint_knob.set_local_style_prop(lv.STYLE_BORDER_COLOR, col32, lv.PART_MAIN)
                 self._temp_knob.set_local_style_prop(lv.STYLE_BORDER_COLOR, lv.color_to_u32(light), lv.PART_MAIN)
             end
@@ -338,7 +344,7 @@ class lv_thermostat_card : lv.obj
 
     def _arc_changed(obj, evt)
         self._setpoint = real(self.arc.get_value()) / self._setpoint_resolution
-        self.arc.align_obj_to_angle(self._setpoint_knob, -self._arc_width/2)
+        self.arc.align_obj_to_angle(self._setpoint_knob, 0)
         self._update_diff_arc()
         self._update__setpoint_label()
         self._update_temp_label()

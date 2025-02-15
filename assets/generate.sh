@@ -84,7 +84,7 @@ utf8_encode()
 
 # shellcheck disable=SC2034 # variable name is auto-detected
 specific_args_huge_symbols=(
-    --size 48
+    --size 54
     --no-kerning
     --font "${sym_font}"
     --range "$(icon_names_to_range "${sym_font}" local_fire_department wb_sunny bedtime pan_tool power_settings_new)"
@@ -92,22 +92,24 @@ specific_args_huge_symbols=(
 
 # shellcheck disable=SC2034 # variable name is auto-detected
 specific_args_title_symbols=(
-    --size 32
+    --size 46
     --no-kerning
     --font "${sym_font}"
     --range "$(icon_names_to_range "${sym_font}" speed timeline toggle_on)"
 )
 
+# shellcheck disable=SC2034 # variable name is auto-detected
 specific_args_medium=(
-    --size 24
+    --size 36
     --font "${text_font}"
     --symbols '0123456789,.-°CF% '
     --font "${sym_font}"
     --range "$(icon_names_to_range "${sym_font}" thermostat water_drop screen_lock_landscape)"
 )
 
+# shellcheck disable=SC2034 # variable name is auto-detected
 specific_args_big_num=(
-    --size 70
+    --size 100
     #--no-kerning
     --font "${text_font}"
     --symbols '0123456789,.-'
