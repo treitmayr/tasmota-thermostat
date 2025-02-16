@@ -1,8 +1,8 @@
 {"page":0,"comment":"---------- Upper stat line ----------"}
 {"id":0,"text_color":"#FFFFFF"}
 {"id":11,"obj":"label","x":0,"y":0,"w%":100,"pad_left":10,"h":32,"bg_color":"#D00000","bg_opa":255,"radius":0,"border_side":0,"text":"Thermostat","text_font":"montserrat-28"}
-{"id":15,"obj":"lv_clock","x":310,"y":4,"w":80,"h":28,"radius":0,"border_side":0,"text_font":"seg7-20"}
-{"id":16,"obj":"lv_wifi_arcs","x":390,"y":0,"w":35,"h":27,"radius":0,"border_side":0,"bg_color":"#000000","line_color":"#FFFFFF"}
+{"id":15,"obj":"lv_clock","x":290,"y":4,"w":80,"h":28,"radius":0,"border_side":0,"text_font":"seg7-20"}
+{"id":16,"obj":"lv_wifi_arcs","x":380,"y":0,"w":35,"h":27,"radius":0,"border_side":0,"bg_color":"#000000","line_color":"#FFFFFF"}
 {"id":17,"obj":"label","x":437,"y":1,"w":29,"h":28,"bg_opa":0,"radius":0,"border_side":0,"text":"\ue1be","text_font":"A:medium.font"}
 
 {"page":1,"comment":"---------- Page 1 ----------"}
@@ -12,20 +12,21 @@
 
   {"id":20,"obj":"tab","parentid":10,"text":"\ue9e4","tab_text_font":"A:title_symbols.font","pad_all":2}
     {"id":21,"obj":"full_thermostat","parentid":20,"x":0,"y":10,"h%":100,"w%":100,"border_side":0,"arc_width":40,"min":17,"max":27,"measured_rule":"SHT3X#Temperature","humidity_rule":"SHT3X#Humidity"}
+    {"id":22,"obj":"aura_button","parentid":20,"x":0,"y":0,"text":"\uef55","text_font":"A:huge_symbols.font"}
 
   {"id":30,"obj":"tab","parentid":10,"text":"\ue9f6","tab_text_font":"A:title_symbols.font","pad_all":2}
 
-    {"id":31,"obj":"label","parentid":30,"x":10,"y":53,"w%":50,"text":"Stereoanlage","text_font":"A:medium.font"}
-    {"id":32,"obj":"power_switch","parentid":30,"x%":65,"y":50,"w":140,"h":50,"remote":"tasmota3","text_checked":"Ein","text_unchecked":"Aus","confirm_power":25,"confirm_text_off":"Stereoanlage wirklich abschalten?"}
+    {"id":31,"obj":"label","parentid":30,"x":15,"y":53,"w%":50,"text":"Stereoanlage","text_font":"A:medium.font"}
+    {"id":32,"obj":"power_switch","parentid":30,"x%":65,"y":50,"w":140,"h":50,"remote":"tasmota3","text_checked":"Ein","text_unchecked":"Aus","text_font":"montserrat-20","confirm_power":25,"confirm_text_off":"Stereoanlage wirklich abschalten?"}
 
-    {"id":33,"obj":"label","parentid":30,"x":10,"y":153,"w%":50,"text":"3D-Drucker","text_font":"A:medium.font"}
-    {"id":34,"obj":"power_switch","parentid":30,"x%":65,"y":150,"w":140,"h":50,"remote":"tasmota9","text_checked":"Ein","text_unchecked":"Aus","confirm_power":3,"confirm_text_off":"3D-Drucker wirklich abschalten?"}
+    {"id":33,"obj":"label","parentid":30,"x":15,"y":153,"w%":50,"text":"3D-Drucker","text_font":"A:medium.font"}
+    {"id":34,"obj":"power_switch","parentid":30,"x%":65,"y":150,"w":140,"h":50,"remote":"tasmota9","text_checked":"Ein","text_unchecked":"Aus","text_font":"montserrat-20","confirm_power":3,"confirm_text_off":"3D-Drucker wirklich abschalten?"}
 
-    {"id":35,"obj":"label","parentid":30,"x":10,"y":253,"w%":50,"text":"Ventilator","text_font":"A:medium.font"}
-    {"id":36,"obj":"power_switch","parentid":30,"x%":65,"y":250,"w":140,"h":50,"remote":"tasmota2","text_checked":"Ein","text_unchecked":"Aus"}
+    {"id":35,"obj":"label","parentid":30,"x":15,"y":253,"w%":50,"text":"Ventilator","text_font":"A:medium.font"}
+    {"id":36,"obj":"power_switch","parentid":30,"x%":65,"y":250,"w":140,"h":50,"remote":"tasmota2","text_checked":"Ein","text_unchecked":"Aus","text_font":"montserrat-20"}
 
-    {"id":37,"obj":"label","parentid":30,"x":10,"y":353,"w%":50,"text":"Lichtanlage","text_font":"A:medium.font"}
-    {"id":38,"obj":"power_switch","parentid":30,"x%":65,"y":350,"w":140,"h":50,"remote":"tasmota1","text_checked":"Ein","text_unchecked":"Aus"}
+    {"id":37,"obj":"label","parentid":30,"x":15,"y":353,"w%":50,"text":"Lichtanlage","text_font":"A:medium.font"}
+    {"id":38,"obj":"power_switch","parentid":30,"x%":65,"y":350,"w":140,"h":50,"remote":"tasmota1","text_checked":"Ein","text_unchecked":"Aus","text_font":"montserrat-20"}
 
   {"id":50,"obj":"tab","parentid":10,"text":"\ue922","tab_text_font":"A:title_symbols.font","pad_all":2}
     {"id":51,"obj":"lv_tasmota_info","parentid":50,"x":3,"y":25,"w":251,"h":40,"radius":0}
